@@ -51,10 +51,12 @@ class HolidayList:
         for holiday in self.innerHolidays:
             if holiday==holiday_to_find:
                 holiday_in_list=True
+                # Return Holiday
                 print(holiday)
+        #Message if entered holiday not in list
         if not holiday_in_list:
             print("that holiday is not in the list")
-        # Return Holiday
+        
 test1=Holiday("tester",'2019-12-04') 
 test2=14
 test3=Holiday("tester2",'2019-12-04')
