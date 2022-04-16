@@ -1,4 +1,5 @@
 import datetime
+from datetime import datetime,date
 import json
 from bs4 import BeautifulSoup
 import requests
@@ -13,12 +14,13 @@ from dataclasses import dataclass
 # --------------------------------------------
 @dataclass
 class Holiday:
-      
+         
     name: str
+    formater_string="%Y-%m-%d"
     date: datetime        
     
     def __str__ (self):
-        return '%s (%s)' % (self.name, self.date)
+        return '%s (%s)' % (self.name, self.date.strftime(self.formater_string))
 
            
 # -------------------------------------------
@@ -77,9 +79,9 @@ class HolidayList:
         internal_addition=True
         for holiday in holidays_list:
             holiday_object=Holiday(holiday["name"],holiday["date"])
+            # Use addHoliday function to add holidays to inner list.
             self.addHoliday(holiday_object,internal_addition)
-        # Use addHoliday function to add holidays to inner list.
-
+        
     def save_to_json(self,filelocation):
         # Write out json file to selected file.
         file=open(f'{filelocation}.json','w') # open the file to edit
@@ -96,49 +98,110 @@ class HolidayList:
         json.dump(json_dict,file)
         file.close()
 
-    def scrapeHolidays():
-        # Scrape Holidays from https://www.timeanddate.com/holidays/us/ 
+    def scrapeHolidays(self):
+        this_year=date.today().year
+        internal_addition=True
+        def getHTML(url):
+            response=requests.get(url)
+            return response.text
         # Remember, 2 previous years, current year, and 2  years into the future. You can scrape multiple years by adding year to the timeanddate URL. For example https://www.timeanddate.com/holidays/us/2022
-        # Check to see if name and date of holiday is in innerHolidays array
-        # Add non-duplicates to innerHolidays
+        years_off_set={-2,-1,0,1,2}
+        for year_offset in years_off_set:
+            year=this_year+year_offset
+            # Scrape Holidays from https://www.timeanddate.com/holidays/us/ 
+            html_text=getHTML(f"https://www.timeanddate.com/holidays/us/{year}?hol=43119487")
+            soup = BeautifulSoup(html_text,'html.parser')
+            holiday_table=soup.find('table',attrs={'id':'holidays-table'})
+            table_rows=holiday_table.find_all('tr')
+            for row in table_rows:
+                date_value=row.find('th',attrs={'class':'nw'})
+                holiday_name=row.find('a')
+                html_formal='%b %d %Y'
+                if date_value!=None and holiday_name!=None:
+                    date_text=date_value.text
+                    as_datetime=datetime.strptime(f"{date_text} {year}",html_formal)
+                    holiday_name_text=holiday_name.text
+                    holiday_to_add=Holiday(holiday_name_text,as_datetime)
+                    # Check to see if name and date of holiday is in innerHolidays array
+                    if holiday_to_add not in self.innerHolidays:
+                        # Add non-duplicates to innerHolidays 
+                        self.addHoliday(holiday_to_add,internal_addition)
         # Handle any exceptions.
-        print("hello")   
-
-test1=Holiday("tester",'2019-12-04') 
-test2=14
-test3=Holiday("tester2",'2019-12-04')
-test_list=HolidayList()
-test_list.addHoliday(test1,False)
-test_list.addHoliday(test2,False)
-test_list.addHoliday(test3,False)
-test_list.removeHoliday("tester2",'2019-12-04')
-test_list.findHoliday("tester",'2019-12-04')
-test_list.findHoliday("tester2",'2019-12-04')
-test_list.read_json("holidays")
-test_list.findHoliday("Margaret Thatcher Day","2021-01-10")
-test_list.save_to_json("test")
-second_test_list=HolidayList()
-second_test_list.read_json("test")      
-
-#     def numHolidays():
-#         # Return the total number of holidays in innerHolidays
+   
+    def numHolidays(self):
+        # Return the total number of holidays in innerHolidays
+        return(len(self.innerHolidays))
     
-#     def filter_holidays_by_week(year, week_number):
-#         # Use a Lambda function to filter by week number and save this as holidays, use the filter on innerHolidays
-#         # Week number is part of the the Datetime object
-#         # Cast filter results as list
-#         # return your holidays
+    def filter_holidays_by_week(self,year, week_number):
+        # Use a Lambda function to filter by week number and save this as holidays, use the filter on innerHolidays
+        # Week number is part of the the Datetime object
+        # Cast filter results as list
+        holidays_this_year=list(filter(lambda x:x.date.year==year,self.innerHolidays))
+        holidays_this_week=list(filter(lambda x:int(x.date.strftime('%U'))==week_number,holidays_this_year))
+        # return your holidays
+        return holidays_this_week
 
-#     def displayHolidaysInWeek(holidayList):
-#         # Use your filter_holidays_by_week to get list of holidays within a week as a parameter
-#         # Output formated holidays in the week. 
-#         # * Remember to use the holiday __str__ method.
+    def displayHolidaysInWeek(self,holidayList):
+        # Use your filter_holidays_by_week to get list of holidays within a week as a parameter
+        yesterday=""
+        for i in range(len(holidayList)):
+            current_day=holidayList[i].date.strftime('%A')
+            if current_day!=yesterday:
+                print(current_day)
+            # Output formated holidays in the week.
+            # * Remember to use the holiday __str__ method. 
+            print(f"    {holidayList[i]}")
+            yesterday=holidayList[i].date.strftime('%A')
+            
+        
 
-#     def getWeather(weekNum):
-#         # Convert weekNum to range between two days
-#         # Use Try / Except to catch problems
-#         # Query API for weather in that week range
-#         # Format weather information and return weather string.
+    def getWeather(self,weekNum,year):
+        # Convert weekNum to range between two days
+        reference_day=int(datetime.strftime(date.today(),"%j"))
+        reference_weekday=date.today().weekday()
+        first_sunday=(reference_day-reference_weekday-1)%7
+        sunday_of_weekNum="{0:0>3}".format(first_sunday+7*(weekNum-1))
+        start_week_day=datetime.strptime(f"{sunday_of_weekNum} {year}","%j %Y")
+        print(start_week_day)
+        # Use Try / Except to catch problems
+        # Query API for weather in that week range
+        # Format weather information and return weather string.
+
+import requests
+
+url = "https://weatherapi-com.p.rapidapi.com/history.json"
+
+querystring = {"q":"milwaukee","dt":"2022-04-10","lang":"en","hour":"12","end_dt":"2022-04-16"}
+
+headers = {
+	"X-RapidAPI-Host": "weatherapi-com.p.rapidapi.com",
+	"X-RapidAPI-Key": "2c98c4ffe8mshd2948e701baa19ep196868jsn0719c00cd518"
+}
+
+response = requests.request("GET", url, headers=headers, params=querystring)
+
+print(response.text)
+# test=HolidayList()
+# test.getWeather(15,2022)
+# test.scrapeHolidays()
+# print(test.numHolidays())
+# test.displayHolidaysInWeek(test.filter_holidays_by_week(2022,3))
+# test1=Holiday("tester",datetime.strptime('2019-12-04','%Y-%m-%d'))
+# print(type(test1.date))
+# test2=14
+# test3=Holiday("tester2",'2019-12-04')
+# test_list=HolidayList()
+# test_list.addHoliday(test1,False)
+# test_list.addHoliday(test2,False)
+# test_list.addHoliday(test3,False)
+# test_list.removeHoliday("tester2",'2019-12-04')
+# test_list.findHoliday("tester",'2019-12-04')
+# test_list.findHoliday("tester2",'2019-12-04')
+# test_list.read_json("holidays")
+# test_list.findHoliday("Margaret Thatcher Day","2021-01-10")
+# test_list.save_to_json("test")
+# second_test_list=HolidayList()
+# second_test_list.read_json("test")      
 
 #     def viewCurrentWeek():
 #         # Use the Datetime Module to look up current week and year
