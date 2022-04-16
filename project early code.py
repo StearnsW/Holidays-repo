@@ -250,20 +250,24 @@ def main():
             file_name=Save_Holiday_List_Menu()
             if file_name!="":
                 Holidays.save_to_json(file_name)
+            print("\n\n")
         elif user_choice==4:
             year_to_view=View_Holidays_Menu()
             week_to_view=Get_Week()
-            print("\n")
+            print("\n\n")
             if week_to_view=="":
                 Holidays.viewCurrentWeek()
             else:
                 holidays_to_view=Holidays.filter_holidays_by_week(week_to_view,year_to_view)
                 Holidays.resetWeather()
                 Holidays.displayHolidaysInWeek(holidays_to_view)
+            print("\n\n")
         else:
+            # 7. Ask the User if they would like to Continue, if not, end the while loop, ending the program.  If they do wish to continue, keep the program going. 
             editing_file=not Exit_Menu(Holidays.up_to_date)
-    # 7. Ask the User if they would like to Continue, if not, end the while loop, ending the program.  If they do wish to continue, keep the program going. 
-
+            if editing_file:
+                print("\n\n")
+    
 
 def User_Menu():
     print("Holiday Menu")
@@ -274,7 +278,6 @@ def User_Menu():
     print("3. Save Holiday List")
     print("4. View Holidays")
     print("5. Exit")
-    #loop to make sure they choose a valid option
     choice_made = False
     # 5. Take user input for their action based on Menu and check the user input for errors
     while not choice_made:
@@ -386,25 +389,6 @@ def Get_Week():
     return week_to_return
         
 
-#main()
-# test=HolidayList()
-# print(test.weather_list)
-# test.scrapeHolidays()
-# holidays=test.filter_holidays_by_week(0,2022)
-# test.displayHolidaysInWeek(holidays)
-# weather=test.getWeather(0,2022)
-# print(test.weather_list)
-# print(test.numHolidays())
-# test.displayHolidaysInWeek(test.filter_holidays_by_week(2022,3))
-# test1=Holiday("tester",datetime.strptime('2019-12-04','%Y-%m-%d'))
-# print(type(test1.date))
-# test2=14
-# test3=Holiday("tester2",'2019-12-04')
-# test_list=HolidayList()
-# test_list.scrapeHolidays()
-# test_list.save_to_json("test")
-# second_test_list=HolidayList()
-# second_test_list.read_json("test")      
 
 if __name__ == "__main__":
     main();
