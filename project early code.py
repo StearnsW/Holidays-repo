@@ -33,7 +33,7 @@ class HolidayList:
        self.innerHolidays = []
        self.test=Holiday("test",'2019-12-04')
 
-    def addHoliday(self,holidayObj,internal):
+    def addHoliday(self,holidayObj,internalBool):
         # Make sure holidayObj is an Holiday Object by checking the type
         is_holiday=False
         if type(holidayObj)==type(self.test):
@@ -44,10 +44,10 @@ class HolidayList:
         if is_holiday:
             self.innerHolidays.append(holidayObj)
             # print to the user that you added a holiday
-            if not internal:
+            if not internalBool:
                 print("A holiday was added to the list")
 
-    def findHoliday(self,HolidayName, Date):
+    def findHoliday(self,HolidayName,Date):
         # Find Holiday in innerHolidays
         holiday_to_find=Holiday(HolidayName,Date)
         holiday_in_list=False
@@ -61,7 +61,7 @@ class HolidayList:
             print("that holiday is not in the list")
             return None
         
-    def removeHoliday(self,HolidayName, Date):
+    def removeHoliday(self,HolidayName,Date):
         # Find Holiday in innerHolidays by searching the name and date combination.
         holiday_to_remove=self.findHoliday(HolidayName,Date)
         # remove the Holiday from innerHolidays
@@ -132,58 +132,86 @@ class HolidayList:
         # Return the total number of holidays in innerHolidays
         return(len(self.innerHolidays))
     
-    def filter_holidays_by_week(self,year, week_number):
+    def filter_holidays_by_week(self,weekNum,year):
         # Use a Lambda function to filter by week number and save this as holidays, use the filter on innerHolidays
         # Week number is part of the the Datetime object
         # Cast filter results as list
         holidays_this_year=list(filter(lambda x:x.date.year==year,self.innerHolidays))
-        holidays_this_week=list(filter(lambda x:int(x.date.strftime('%U'))==week_number,holidays_this_year))
+        holidays_this_week=list(filter(lambda x:int(x.date.strftime('%U'))==weekNum,holidays_this_year))
         # return your holidays
         return holidays_this_week
 
-    def displayHolidaysInWeek(self,holidayList):
+    def displayHolidaysInWeek(self,holidayList,weatherList):
         # Use your filter_holidays_by_week to get list of holidays within a week as a parameter
         yesterday=""
         for i in range(len(holidayList)):
             current_day=holidayList[i].date.strftime('%A')
+            day_of_week=int(holidayList[i].date.strftime('%w'))
             if current_day!=yesterday:
-                print(current_day)
+                print(f"{current_day}  {weatherList[day_of_week]}")
             # Output formated holidays in the week.
             # * Remember to use the holiday __str__ method. 
             print(f"    {holidayList[i]}")
             yesterday=holidayList[i].date.strftime('%A')
             
-        
-
     def getWeather(self,weekNum,year):
         # Convert weekNum to range between two days
         reference_day=int(datetime.strftime(date.today(),"%j"))
         reference_weekday=date.today().weekday()
         first_sunday=(reference_day-reference_weekday-1)%7
         sunday_of_weekNum="{0:0>3}".format(first_sunday+7*(weekNum-1))
+        saturday_of_weekNum="{0:0>3}".format(first_sunday+7*(weekNum-1)+6)
         start_week_day=datetime.strptime(f"{sunday_of_weekNum} {year}","%j %Y")
-        print(start_week_day)
-        # Use Try / Except to catch problems
+        end_week_day=datetime.strptime(f"{saturday_of_weekNum} {year}","%j %Y")
         # Query API for weather in that week range
+        url = "https://weatherapi-com.p.rapidapi.com/history.json"
+        querystring = {"q":"milwaukee","dt":f"{datetime.strftime(start_week_day,'%Y-%m-%d')}","lang":"en","hour":"12","end_dt":f"{datetime.strftime(end_week_day,'%Y-%m-%d')}"}
+        headers = {
+            "X-RapidAPI-Host": "weatherapi-com.p.rapidapi.com",
+            "X-RapidAPI-Key": "2c98c4ffe8mshd2948e701baa19ep196868jsn0719c00cd518"
+        }
+        response = requests.request("GET", url, headers=headers, params=querystring)
+
         # Format weather information and return weather string.
+        weather_json_data = json.loads(response.text)
+        weather_list=[]
+        for i in range(7):
+            weather_list.append("")
+        for i in range(len(weather_json_data["forecast"]["forecastday"])):
+            weather_list[i]=weather_json_data["forecast"]["forecastday"][i]["day"]["condition"]["text"]
+        return weather_list
+        # Use Try / Except to catch problems
+        
 
-import requests
+    def viewCurrentWeek(self):
+        # Use the Datetime Module to look up current week and year
+        this_year=date.today().year
+        this_week=int(datetime.strftime(date.today(),"%U"))
+        # Use your filter_holidays_by_week function to get the list of holidays for the current week/year
+        holiday_list=self.filter_holidays_by_week(this_week,this_year) 
+        # Use your displayHolidaysInWeek function to display the holidays in the week
+        # Ask user if they want to get the weather
+        # If yes, use your getWeather function and display results
+        weather_list=self.getWeather(this_week,this_year)
+        self.displayHolidaysInWeek(holiday_list,weather_list)       
 
-url = "https://weatherapi-com.p.rapidapi.com/history.json"
 
-querystring = {"q":"milwaukee","dt":"2022-04-10","lang":"en","hour":"12","end_dt":"2022-04-16"}
+# def main():
+#     # Large Pseudo Code steps
+#     # -------------------------------------
+#     # 1. Initialize HolidayList Object
+#     # 2. Load JSON file via HolidayList read_json function
+#     # 3. Scrape additional holidays using your HolidayList scrapeHolidays function.
+#     # 3. Create while loop for user to keep adding or working with the Calender
+#     # 4. Display User Menu (Print the menu)
+#     # 5. Take user input for their action based on Menu and check the user input for errors
+#     # 6. Run appropriate method from the HolidayList object depending on what the user input is
+#     # 7. Ask the User if they would like to Continue, if not, end the while loop, ending the program.  If they do wish to continue, keep the program going. 
 
-headers = {
-	"X-RapidAPI-Host": "weatherapi-com.p.rapidapi.com",
-	"X-RapidAPI-Key": "2c98c4ffe8mshd2948e701baa19ep196868jsn0719c00cd518"
-}
 
-response = requests.request("GET", url, headers=headers, params=querystring)
-
-print(response.text)
 # test=HolidayList()
-# test.getWeather(15,2022)
 # test.scrapeHolidays()
+# test.viewCurrentWeek()
 # print(test.numHolidays())
 # test.displayHolidaysInWeek(test.filter_holidays_by_week(2022,3))
 # test1=Holiday("tester",datetime.strptime('2019-12-04','%Y-%m-%d'))
@@ -202,29 +230,6 @@ print(response.text)
 # test_list.save_to_json("test")
 # second_test_list=HolidayList()
 # second_test_list.read_json("test")      
-
-#     def viewCurrentWeek():
-#         # Use the Datetime Module to look up current week and year
-#         # Use your filter_holidays_by_week function to get the list of holidays 
-#         # for the current week/year
-#         # Use your displayHolidaysInWeek function to display the holidays in the week
-#         # Ask user if they want to get the weather
-#         # If yes, use your getWeather function and display results
-
-
-
-# def main():
-#     # Large Pseudo Code steps
-#     # -------------------------------------
-#     # 1. Initialize HolidayList Object
-#     # 2. Load JSON file via HolidayList read_json function
-#     # 3. Scrape additional holidays using your HolidayList scrapeHolidays function.
-#     # 3. Create while loop for user to keep adding or working with the Calender
-#     # 4. Display User Menu (Print the menu)
-#     # 5. Take user input for their action based on Menu and check the user input for errors
-#     # 6. Run appropriate method from the HolidayList object depending on what the user input is
-#     # 7. Ask the User if they would like to Continue, if not, end the while loop, ending the program.  If they do wish to continue, keep the program going. 
-
 
 # if __name__ == "__main__":
 #     main();
