@@ -314,7 +314,13 @@ def Save_Holiday_List_Menu():
             print("Canceled:\nHoliday list file save canceled.")
             run_save = True
         else: # want to edit existing, leave edit conflict loop and same name loop, change edit boolean
-            save_file_name=input("What would like the file to be called?\n")
+            new_file_name=False
+            while not new_file_name:
+                save_file_name=input("What would like the file to be called? (A file with the same name as existing will overwrite)\n")
+                if save_file_name=="holidays":
+                    print("That name is already in use and cannot be overwritten, please try again")
+                else:
+                    new_file_name=True
             run_save=True
     return save_file_name
 
