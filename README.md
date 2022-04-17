@@ -1,7 +1,8 @@
 README for Holidays-repo
 
 The purpose of this repository is to be a backup storage space as well as an easy 
-external access point for William Stearns' Dev-10 Data Cohort Module 7 Assessment.
+external access point for William Stearns' Dev-10 Data Cohort Module 7 Assessment
+due 4/17/22.
 
 Included in this repository are the following files:
 
@@ -45,5 +46,5 @@ This is a project repository for a class, please do not edit its contents before
 PLEASE DO NOT TAKE THIS FOR OTHER GRADED WORK, I do not want to be responsible
 for you doing poorly if this code is not well received.
 
-If you'd like it for personal or commercial purposes (I would be shocked,
-but you do you) feel free.
+If you'd like it for personal or commercial purposes feel free (I would be shocked,
+but you do you).
