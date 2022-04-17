@@ -215,7 +215,18 @@ class HolidayList:
         # Use your displayHolidaysInWeek function to display the holidays in the week
         # Ask user if they want to get the weather
         # If yes, use your getWeather function and display results
-        self.getWeather(this_week,this_year)
+        need_check_get_weather=True
+        while need_check_get_weather:
+            save_changes=input("You picked this week, would you like to view the weather? [y/n]: ")
+            if save_changes!='y' and save_changes!='n': # invalid reply
+                print("That wasn't one of the options, please resond only 'y' or 'n'")
+            elif save_changes == 'n': # not to edit existing, leave edit conflict loop
+                print("Your output will not include weather")
+                need_check_get_weather=False
+            else:
+                self.getWeather(this_week,this_year)
+                need_check_get_weather=False
+        print("\n\n")
         self.displayHolidaysInWeek(holiday_list)       
 
 
@@ -240,33 +251,33 @@ def main():
             holiday_name=Add_Holiday_Menu()
             holiday_date=Date_Check(holiday_name)
             Holidays.addHoliday(Holiday(holiday_name,holiday_date),internal_add)
-            print("\n\n")
         elif user_choice==2:
             holiday_name=Remove_Holiday_Menu()
             holiday_date=Date_Check(holiday_name)
             Holidays.removeHoliday(holiday_name,holiday_date)
-            print("\n\n")
         elif user_choice==3:
             file_name=Save_Holiday_List_Menu()
             if file_name!="":
                 Holidays.save_to_json(file_name)
-            print("\n\n")
         elif user_choice==4:
             year_to_view=View_Holidays_Menu()
-            week_to_view=Get_Week()
-            print("\n\n")
-            if week_to_view=="":
-                Holidays.viewCurrentWeek()
-            else:
-                holidays_to_view=Holidays.filter_holidays_by_week(week_to_view,year_to_view)
-                Holidays.resetWeather()
-                Holidays.displayHolidaysInWeek(holidays_to_view)
-            print("\n\n")
+            need_week=True
+            while need_week:
+                week_to_view=Get_Week()
+                if week_to_view=="" and year_to_view==date.today().year:
+                    Holidays.viewCurrentWeek()
+                    need_week=False
+                elif week_to_view=="":
+                    print("You chose a year not this one, please pick a week not [blank] when reprompted.")
+                else:
+                    holidays_to_view=Holidays.filter_holidays_by_week(week_to_view,year_to_view)
+                    Holidays.resetWeather()
+                    Holidays.displayHolidaysInWeek(holidays_to_view)
+                    need_week=False
         else:
             # 7. Ask the User if they would like to Continue, if not, end the while loop, ending the program.  If they do wish to continue, keep the program going. 
             editing_file=not Exit_Menu(Holidays.up_to_date)
-            if editing_file:
-                print("\n\n")
+        print("\n")
     
 
 def User_Menu():
@@ -286,7 +297,7 @@ def User_Menu():
             print("Not a recognized choice, please try agian")
         else:
             choice_made = True
-    print("\n\n")
+    print("\n")
     return int(choice)
 
 def Add_Holiday_Menu():
