@@ -108,7 +108,7 @@ class HolidayList:
             json.dump(json_dict,file)
             file.close()
             self.up_to_date=True
-            print("Success:\nYour changes have been saves.")
+            print("Success:\nYour changes have been saved.")
         except:
             print("There was an error in the save process, I'm sorry")
 
