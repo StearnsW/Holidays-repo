@@ -18,6 +18,12 @@ holidays.json
     A started json file used by the code containing a few holidays to initially
     populate the list to be built with.
 
+holidays saved.json
+
+    A json file made from saving the initialized holiday list, as proof of ability
+    to save worked upon data to json file. (What other saves are called is left
+    up to the user, tries to keep from overwriting holidays.json)
+    
 project starter code.py
     
     A python file containing a beginning structure for the proposed project
